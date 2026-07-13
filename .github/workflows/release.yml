@@ -8,11 +8,13 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Packaging
         working-directory: ../
         run: |
           rm -rf $GITHUB_WORKSPACE/.github
+          # 開発・テスト用ファイルは配布パッケージに含めない
+          rm -f $GITHUB_WORKSPACE/Resource/rector.php "$GITHUB_WORKSPACE/Resource/.php-cs-fixer.dist.php"
           find $GITHUB_WORKSPACE -name "dummy" -delete
           find $GITHUB_WORKSPACE -name ".git*" -and ! -name ".gitkeep" -print0 | xargs -0 rm -rf
           chmod -R o+w $GITHUB_WORKSPACE

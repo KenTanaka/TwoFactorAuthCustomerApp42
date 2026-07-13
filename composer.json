@@ -1,13 +1,13 @@
 {
-    "name": "ec-cube/twofactorauthcustomerapp42",
-    "version": "4.3.0",
-    "description": "2 factor authentication for Customers(APP) EC-CUBE42",
+    "name": "ec-cube/twofactorauthcustomerapp44",
+    "version": "4.4.0",
+    "description": "2 factor authentication for Customers(APP) EC-CUBE 4.4",
     "type": "eccube-plugin",
     "extra": {
-        "code": "TwoFactorAuthCustomerApp42"
+        "code": "TwoFactorAuthCustomerApp44"
     },
     "require": {
         "ec-cube/plugin-installer": "^2.0",
-        "ec-cube/twofactorauthcustomer42": "*"
+        "ec-cube/twofactorauthcustomer44": "*"
     }
 }

@@ -11,7 +11,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\TwoFactorAuthCustomerApp42;
+namespace Plugin\TwoFactorAuthCustomerApp44;
 
 use Eccube\Event\TemplateEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -21,15 +21,6 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class Event implements EventSubscriberInterface
 {
-    /**
-     * Event constructor.
-     *
-     */
-    public function __construct()
-    {
-
-    }
-
     public static function getSubscribedEvents(): array
     {
         return [
@@ -40,13 +31,11 @@ class Event implements EventSubscriberInterface
     /**
      * [/admin/customer/edit]表示の時のEvent Hook.
      * 二段階認証関連項目を追加する.
-     *
-     * @param TemplateEvent $event
      */
-    public function onRenderAdminCustomerEdit(TemplateEvent $event)
+    public function onRenderAdminCustomerEdit(TemplateEvent $event): void
     {
         // add twig
-        $twig = 'TwoFactorAuthCustomerApp42/Resource/template/admin/customer_edit.twig';
+        $twig = 'TwoFactorAuthCustomerApp44/Resource/template/admin/customer_edit.twig';
         $event->addSnippet($twig);
     }
 }

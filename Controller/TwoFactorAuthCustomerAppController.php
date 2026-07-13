@@ -11,16 +11,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\TwoFactorAuthCustomerApp42\Controller;
+namespace Plugin\TwoFactorAuthCustomerApp44\Controller;
 
 use Eccube\Entity\Customer;
-use Plugin\TwoFactorAuthCustomer42\Controller\TwoFactorAuthCustomerController;
-use Plugin\TwoFactorAuthCustomerApp42\Form\Type\TwoFactorAuthAppTypeCustomer;
+use Plugin\TwoFactorAuthCustomer44\Controller\TwoFactorAuthCustomerController;
+use Plugin\TwoFactorAuthCustomerApp44\Form\Type\TwoFactorAuthAppTypeCustomer;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\TwoFactorAuthException;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Symfony\Bridge\Twig\Attribute\Template;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
 {
@@ -36,10 +36,9 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
 
     /**
      * 初回APP認証画面.
-     *
-     * @Route("/mypage/two_factor_auth/app/create", name="plg_customer_2fa_app_create", methods={"GET", "POST"})
-     * @Template("TwoFactorAuthCustomerApp42/Resource/template/default/tfa/app/register.twig")
      */
+    #[Route(path: '/mypage/two_factor_auth/app/create', name: 'plg_customer_2fa_app_create', methods: ['GET', 'POST'])]
+    #[Template('@TwoFactorAuthCustomerApp44/default/tfa/app/register.twig')]
     public function create(Request $request)
     {
         if ($this->isTwoFactorAuthed()) {
@@ -107,10 +106,9 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
 
     /**
      * APP認証画面.
-     *
-     * @Route("/mypage/two_factor_auth/app/challenge", name="plg_customer_2fa_app_challenge", methods={"GET", "POST"})
-     * @Template("TwoFactorAuthCustomerApp42/Resource/template/default/tfa/app/challenge.twig")
      */
+    #[Route(path: '/mypage/two_factor_auth/app/challenge', name: 'plg_customer_2fa_app_challenge', methods: ['GET', 'POST'])]
+    #[Template('@TwoFactorAuthCustomerApp44/default/tfa/app/challenge.twig')]
     public function challenge(Request $request)
     {
         if ($this->isTwoFactorAuthed()) {
@@ -159,28 +157,20 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
         ];
     }
 
-
     /**
      * 秘密鍵生成.
      *
-     * @return string
-     *
      * @throws TwoFactorAuthException
      */
-    private function createSecret()
+    private function createSecret(): string
     {
         return $this->tfa->createSecret();
     }
 
     /**
-     * 認証コードを取得.
-     *
-     * @param string $authKey
-     * @param string $token
-     *
-     * @return boolean
+     * 認証コードを検証.
      */
-    private function verifyCode($authKey, $token)
+    private function verifyCode(string $authKey, string $token): bool
     {
         return $this->tfa->verifyCode($authKey, $token, 1);
     }

@@ -11,16 +11,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\TwoFactorAuthCustomerApp42;
+namespace Plugin\TwoFactorAuthCustomerApp44;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Eccube\Common\EccubeConfig;
 use Eccube\Entity\Layout;
 use Eccube\Entity\Page;
 use Eccube\Entity\PageLayout;
 use Eccube\Plugin\AbstractPluginManager;
-use Eccube\Common\EccubeConfig;
-use Plugin\TwoFactorAuthCustomer42\Entity\TwoFactorAuthConfig;
-use Plugin\TwoFactorAuthCustomer42\Entity\TwoFactorAuthType;
+use Plugin\TwoFactorAuthCustomer44\Entity\TwoFactorAuthConfig;
+use Plugin\TwoFactorAuthCustomer44\Entity\TwoFactorAuthType;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -30,16 +30,15 @@ use Symfony\Component\Filesystem\Filesystem;
 class PluginManager extends AbstractPluginManager
 {
     // 設定対象ページ情報
-    private $pages = [
-        ['plg_customer_2fa_app_create', 'アプリ認証初期設定・トークン入力', 'TwoFactorAuthCustomer42/Resource/template/default/tfa/app/register'],
-        ['plg_customer_2fa_app_challenge', 'アプリ認証トークン入力', 'TwoFactorAuthCustomer42/Resource/template/default/tfa/app/challenge'],
+    private array $pages = [
+        ['plg_customer_2fa_app_create', 'アプリ認証初期設定・トークン入力', 'TwoFactorAuthCustomerApp44/Resource/template/default/tfa/app/register'],
+        ['plg_customer_2fa_app_challenge', 'アプリ認証トークン入力', 'TwoFactorAuthCustomerApp44/Resource/template/default/tfa/app/challenge'],
     ];
 
     /**
-     * @param array $meta
-     * @param ContainerInterface $container
+     * @param array<string, mixed> $meta
      */
-    public function enable(array $meta, ContainerInterface $container)
+    public function enable(array $meta, ContainerInterface $container): void
     {
         $em = $container->get('doctrine')->getManager();
 
@@ -53,10 +52,9 @@ class PluginManager extends AbstractPluginManager
     }
 
     /**
-     * @param array $meta
-     * @param ContainerInterface $container
+     * @param array<string, mixed> $meta
      */
-    public function disable(array $meta, ContainerInterface $container)
+    public function disable(array $meta, ContainerInterface $container): void
     {
         $em = $container->get('doctrine')->getManager();
 
@@ -71,10 +69,9 @@ class PluginManager extends AbstractPluginManager
     }
 
     /**
-     * @param array $meta
-     * @param ContainerInterface $container
+     * @param array<string, mixed> $meta
      */
-    public function uninstall(array $meta, ContainerInterface $container)
+    public function uninstall(array $meta, ContainerInterface $container): void
     {
         $em = $container->get('doctrine')->getManager();
 
@@ -90,14 +87,12 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * Twigファイルの登録
-     *
-     * @param ContainerInterface $container
      */
-    protected function copyTwigFiles(ContainerInterface $container)
+    protected function copyTwigFiles(ContainerInterface $container): void
     {
         // テンプレートファイルコピー
         $templatePath = $container->get(EccubeConfig::class)->get('eccube_theme_front_dir')
-            .'/TwoFactorAuthCustomerApp42/Resource/template/default';
+            .'/TwoFactorAuthCustomerApp44/Resource/template/default';
         $fs = new Filesystem();
         if ($fs->exists($templatePath)) {
             return;
@@ -108,15 +103,13 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * ページ情報の登録
-     *
-     * @param EntityManagerInterface $em
      */
-    protected function createPages(EntityManagerInterface $em)
+    protected function createPages(EntityManagerInterface $em): void
     {
         foreach ($this->pages as $p) {
             $hasPage = $em->getRepository(Page::class)->count(['url' => $p[0]]) > 0;
             if (!$hasPage) {
-                /** @var \Eccube\Entity\Page $Page */
+                /** @var Page $Page */
                 $Page = $em->getRepository(Page::class)->newPage();
                 $Page->setEditType(Page::EDIT_TYPE_DEFAULT);
                 $Page->setUrl($p[0]);
@@ -142,27 +135,23 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * Twigファイルの削除
-     *
-     * @param ContainerInterface $container
      */
-    protected function removeTwigFiles(ContainerInterface $container)
+    protected function removeTwigFiles(ContainerInterface $container): void
     {
         $templatePath = $container->get(EccubeConfig::class)->get('eccube_theme_front_dir')
-            .'/TwoFactorAuthCustomerApp42';
+            .'/TwoFactorAuthCustomerApp44';
         $fs = new Filesystem();
         $fs->remove($templatePath);
     }
 
     /**
      * ページ情報の削除
-     *
-     * @param EntityManagerInterface $em
      */
-    protected function removePages(EntityManagerInterface $em)
+    protected function removePages(EntityManagerInterface $em): void
     {
         foreach ($this->pages as $p) {
             $Page = $em->getRepository(Page::class)->findOneBy(['url' => $p[0]]);
-            if (!$Page) {
+            if ($Page !== null) {
                 $Layout = $em->getRepository(Layout::class)->find(Layout::DEFAULT_LAYOUT_UNDERLAYER_PAGE);
                 $PageLayout = $em->getRepository(PageLayout::class)->findOneBy(['Page' => $Page, 'Layout' => $Layout]);
 
@@ -175,12 +164,10 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * 設定の登録.
-     *
-     * @param EntityManagerInterface $em
      */
-    protected function createConfig(EntityManagerInterface $em)
+    protected function createConfig(EntityManagerInterface $em): void
     {
-        /** @var TwoFactorAuthType $TwoFactorAuthType */
+        /** @var TwoFactorAuthType|null $TwoFactorAuthType */
         $TwoFactorAuthType = $em->getRepository(TwoFactorAuthType::class)->findOneBy(['name' => 'APP']);
         if (!$TwoFactorAuthType) {
             // レコードを保存
@@ -197,20 +184,16 @@ class PluginManager extends AbstractPluginManager
 
         // 除外ルートの登録
         $TwoFactorAuthConfig = $em->find(TwoFactorAuthConfig::class, 1);
-        $em->persist($TwoFactorAuthConfig);
+        if ($TwoFactorAuthConfig !== null) {
+            $em->persist($TwoFactorAuthConfig);
+        }
         $em->flush();
-
-        return;
     }
 
     /**
      * ２段階認証設定を消す
-     *
-     * @param EntityManagerInterface $em
-     *
-     * @return void
      */
-    protected function removeConfig(EntityManagerInterface $em)
+    protected function removeConfig(EntityManagerInterface $em): void
     {
         /** @var TwoFactorAuthType|null $TwoFactorAuthType */
         $TwoFactorAuthType = $em->getRepository(TwoFactorAuthType::class)->findOneBy(['name' => 'APP']);

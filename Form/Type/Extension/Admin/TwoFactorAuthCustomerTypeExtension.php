@@ -11,9 +11,8 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\TwoFactorAuthCustomerApp42\Form\Type\Extension\Admin;
+namespace Plugin\TwoFactorAuthCustomerApp44\Form\Type\Extension\Admin;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Eccube\Form\Type\Admin\CustomerType;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -24,28 +23,11 @@ use Symfony\Component\Form\FormEvents;
 class TwoFactorAuthCustomerTypeExtension extends AbstractTypeExtension
 {
     /**
-     * @var EntityManagerInterface
-     */
-    protected EntityManagerInterface $entityManager;
-
-    /**
-     * CouponDetailType constructor.
-     *
-     * @param EntityManagerInterface $entityManager
-     */
-    public function __construct(
-        EntityManagerInterface $entityManager
-    ) {
-        $this->entityManager = $entityManager;
-    }
-
-    /**
      * buildForm.
      *
-     * @param FormBuilderInterface $builder
-     * @param array $options
+     * @param array<string, mixed> $options
      */
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         if (!empty($options['skip_add_form'])) {
             return;

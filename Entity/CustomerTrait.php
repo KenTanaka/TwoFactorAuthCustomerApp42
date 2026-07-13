@@ -11,34 +11,23 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\TwoFactorAuthCustomerApp42\Entity;
+namespace Plugin\TwoFactorAuthCustomerApp44\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Eccube\Annotation\EntityExtension;
+use Eccube\Attribute\EntityExtension;
 
-/**
- * @EntityExtension("Eccube\Entity\Customer")
- */
+#[EntityExtension('Eccube\Entity\Customer')]
 trait CustomerTrait
 {
-    /**
-     * @var ?string
-     *
-     * @ORM\Column(name="two_factor_auth_secret", type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(name: 'two_factor_auth_secret', type: Types::STRING, length: 255, nullable: true)]
     private ?string $two_factor_auth_secret = null;
 
-    /**
-     * @return string
-     */
     public function getTwoFactorAuthSecret(): ?string
     {
         return $this->two_factor_auth_secret;
     }
 
-    /**
-     * @param string|null $two_factor_auth_secret
-     */
     public function setTwoFactorAuthSecret(?string $two_factor_auth_secret): void
     {
         $this->two_factor_auth_secret = $two_factor_auth_secret;
