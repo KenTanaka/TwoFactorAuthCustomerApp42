@@ -76,7 +76,8 @@ jobs:
       - name: Checkout Base Plugin
         uses: actions/checkout@v4
         with:
-          repository: 'EC-CUBE/TwoFactorAuthCustomer44'
+          repository: 'EC-CUBE/TwoFactorAuthCustomer42'
+          ref: '4.4'
           path: 'TwoFactorAuthCustomer44'
 
       - name: Archive Base Plugin
@@ -194,6 +195,9 @@ jobs:
   static-analysis:
     name: Static Analysis
     runs-on: ubuntu-24.04
+    # 静的解析は DB 種別に依存しないため、SQLite 1 構成で一度だけ実行する。
+    # （php-cs-fixer / rector は DB 不要だが、phpstan は objectManagerLoader が
+    #   カーネルを起動し EccubeExtension が dtb_plugin を読むため本体+DBが必要）
     env:
       PLUGIN_CODE: TwoFactorAuthCustomerApp44
       PARENT_PLUGIN_CODE: TwoFactorAuthCustomer44
@@ -219,7 +223,8 @@ jobs:
       - name: Checkout Base Plugin
         uses: actions/checkout@v4
         with:
-          repository: 'EC-CUBE/TwoFactorAuthCustomer44'
+          repository: 'EC-CUBE/TwoFactorAuthCustomer42'
+          ref: '4.4'
           path: 'TwoFactorAuthCustomer44'
 
       - name: Archive Base Plugin
@@ -259,7 +264,11 @@ jobs:
       - name: Setup EC-CUBE
         working-directory: 'ec-cube'
         run: |
-          bin/console doctrine:database:create
+          # DBAL 4 の SQLite は doctrine:database:create 非対応（getCreateDatabaseSQL が削除済み）。
+          # 本体 InstallerCommand と同様、SQLite ではファイル作成をスキップし schema:create で用意する。
+          if [[ "${DATABASE_URL}" != sqlite* ]]; then
+            bin/console doctrine:database:create
+          fi
           bin/console doctrine:schema:create
           bin/console eccube:fixtures:load
       - name: Setup Plugin
@@ -278,3 +287,9 @@ jobs:
       - name: Run Rector
         working-directory: 'ec-cube'
         run: ./vendor/bin/rector process --config=app/Plugin/${PLUGIN_CODE}/Resource/rector.php --dry-run
+
+      - name: Run PHPStan
+        working-directory: 'ec-cube'
+        run: |
+          bin/console cache:clear --no-warmup
+          ./vendor/bin/phpstan analyse -c app/Plugin/${PLUGIN_CODE}/phpstan.neon.dist --no-progress

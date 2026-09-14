@@ -5,7 +5,7 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -21,6 +21,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class Event implements EventSubscriberInterface
 {
+    /**
+     * @return array<string, string>
+     */
     public static function getSubscribedEvents(): array
     {
         return [
@@ -31,6 +34,8 @@ class Event implements EventSubscriberInterface
     /**
      * [/admin/customer/edit]表示の時のEvent Hook.
      * 二段階認証関連項目を追加する.
+     *
+     * @param TemplateEvent $event
      */
     public function onRenderAdminCustomerEdit(TemplateEvent $event): void
     {

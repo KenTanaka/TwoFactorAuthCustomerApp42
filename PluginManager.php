@@ -5,7 +5,7 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -29,7 +29,11 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class PluginManager extends AbstractPluginManager
 {
-    // 設定対象ページ情報
+    /**
+     * 設定対象ページ情報
+     *
+     * @var list<array{0: string, 1: string, 2: string}>
+     */
     private array $pages = [
         ['plg_customer_2fa_app_create', 'アプリ認証初期設定・トークン入力', 'TwoFactorAuthCustomerApp44/Resource/template/default/tfa/app/register'],
         ['plg_customer_2fa_app_challenge', 'アプリ認証トークン入力', 'TwoFactorAuthCustomerApp44/Resource/template/default/tfa/app/challenge'],
@@ -37,6 +41,7 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * @param array<string, mixed> $meta
+     * @param ContainerInterface $container
      */
     public function enable(array $meta, ContainerInterface $container): void
     {
@@ -53,6 +58,7 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * @param array<string, mixed> $meta
+     * @param ContainerInterface $container
      */
     public function disable(array $meta, ContainerInterface $container): void
     {
@@ -70,6 +76,7 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * @param array<string, mixed> $meta
+     * @param ContainerInterface $container
      */
     public function uninstall(array $meta, ContainerInterface $container): void
     {
@@ -87,6 +94,8 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * Twigファイルの登録
+     *
+     * @param ContainerInterface $container
      */
     protected function copyTwigFiles(ContainerInterface $container): void
     {
@@ -103,6 +112,8 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * ページ情報の登録
+     *
+     * @param EntityManagerInterface $em
      */
     protected function createPages(EntityManagerInterface $em): void
     {
@@ -121,11 +132,16 @@ class PluginManager extends AbstractPluginManager
                 $em->flush();
 
                 $Layout = $em->getRepository(Layout::class)->find(Layout::DEFAULT_LAYOUT_UNDERLAYER_PAGE);
+                $pageId = $Page->getId();
+                $layoutId = $Layout?->getId();
+                if ($Layout === null || $pageId === null || $layoutId === null) {
+                    continue;
+                }
                 $PageLayout = new PageLayout();
                 $PageLayout->setPage($Page)
-                    ->setPageId($Page->getId())
+                    ->setPageId($pageId)
                     ->setLayout($Layout)
-                    ->setLayoutId($Layout->getId())
+                    ->setLayoutId($layoutId)
                     ->setSortNo(0);
                 $em->persist($PageLayout);
                 $em->flush();
@@ -135,6 +151,8 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * Twigファイルの削除
+     *
+     * @param ContainerInterface $container
      */
     protected function removeTwigFiles(ContainerInterface $container): void
     {
@@ -146,6 +164,8 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * ページ情報の削除
+     *
+     * @param EntityManagerInterface $em
      */
     protected function removePages(EntityManagerInterface $em): void
     {
@@ -154,8 +174,9 @@ class PluginManager extends AbstractPluginManager
             if ($Page !== null) {
                 $Layout = $em->getRepository(Layout::class)->find(Layout::DEFAULT_LAYOUT_UNDERLAYER_PAGE);
                 $PageLayout = $em->getRepository(PageLayout::class)->findOneBy(['Page' => $Page, 'Layout' => $Layout]);
-
-                $em->remove($PageLayout);
+                if ($PageLayout !== null) {
+                    $em->remove($PageLayout);
+                }
                 $em->remove($Page);
                 $em->flush();
             }
@@ -164,6 +185,8 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * 設定の登録.
+     *
+     * @param EntityManagerInterface $em
      */
     protected function createConfig(EntityManagerInterface $em): void
     {
@@ -192,6 +215,8 @@ class PluginManager extends AbstractPluginManager
 
     /**
      * ２段階認証設定を消す
+     *
+     * @param EntityManagerInterface $em
      */
     protected function removeConfig(EntityManagerInterface $em): void
     {
@@ -199,7 +224,7 @@ class PluginManager extends AbstractPluginManager
         $TwoFactorAuthType = $em->getRepository(TwoFactorAuthType::class)->findOneBy(['name' => 'APP']);
 
         // APPオプションがあれば、そのオプションを無効にする
-        if (!empty($TwoFactorAuthType)) {
+        if ($TwoFactorAuthType !== null) {
             $TwoFactorAuthType->setIsDisabled(true);
             $em->persist($TwoFactorAuthType);
         }

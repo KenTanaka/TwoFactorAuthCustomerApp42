@@ -5,7 +5,7 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -19,6 +19,7 @@ use Plugin\TwoFactorAuthCustomerApp44\Form\Type\TwoFactorAuthAppTypeCustomer;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\TwoFactorAuthException;
 use Symfony\Bridge\Twig\Attribute\Template;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -30,12 +31,9 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
     protected const SESSION_APP_AUTH_KEY = 'plugin_eccube_customer_2fa_app_auth_key';
 
     /**
-     * @var TwoFactorAuth
-     */
-    protected $tfa;
-
-    /**
      * 初回APP認証画面.
+     *
+     * @return array<string, mixed>|RedirectResponse
      */
     #[Route(path: '/mypage/two_factor_auth/app/create', name: 'plg_customer_2fa_app_create', methods: ['GET', 'POST'])]
     #[Template('@TwoFactorAuthCustomerApp44/default/tfa/app/register.twig')]
@@ -45,34 +43,34 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
             return $this->redirectToRoute($this->getCallbackRoute());
         }
 
-        $this->tfa = new TwoFactorAuth();
+        $tfa = new TwoFactorAuth();
 
         $error = null;
-        /** @var Customer $Customer */
         $Customer = $this->getUser();
+        if (!$Customer instanceof Customer) {
+            return $this->redirectToRoute('mypage');
+        }
 
         $builder = $this->formFactory->createBuilder(TwoFactorAuthAppTypeCustomer::class);
-        $form = null;
+        $form = $builder->getForm();
         $auth_key = null;
 
         if ('GET' === $request->getMethod()) {
             if ($Customer->getTwoFactorAuthSecret()) {
                 // 既に二段階認証設定済み + APP認証設定済み(二回目以降)
                 return [
-                    'form' => $builder->getForm(),
+                    'form' => $form->createView(),
                     'Customer' => $Customer,
                 ];
             }
-            $auth_key = $this->createSecret();
+            $auth_key = $this->createSecret($tfa);
             $this->session->set(self::SESSION_APP_AUTH_KEY, $auth_key);
-            $form = $builder->getForm();
         } elseif ('POST' === $request->getMethod()) {
-            $form = $builder->getForm();
             $form->handleRequest($request);
             $auth_key = $this->session->get(self::SESSION_APP_AUTH_KEY);
             if ($form->isSubmitted() && $form->isValid()) {
                 $token = $form->get('one_time_token')->getData();
-                if ($this->verifyCode($auth_key, $token)) {
+                if (is_string($auth_key) && is_string($token) && $this->verifyCode($tfa, $auth_key, $token)) {
                     // 秘密鍵更新
                     $Customer->setTwoFactorAuthSecret($auth_key);
                     $this->entityManager->persist($Customer);
@@ -85,12 +83,12 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
                         $this->customerTwoFactorAuthService->createAuthedCookie(
                             $Customer,
                             $this->getCallbackRoute()
-                        ));
+                        )
+                    );
 
                     return $response;
-                } else {
-                    $error = trans('front.2fa.onetime.invalid_message__reinput');
                 }
+                $error = trans('front.2fa.onetime.invalid_message__reinput');
             } else {
                 $error = trans('front.2fa.onetime.invalid_message__reinput');
             }
@@ -106,6 +104,8 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
 
     /**
      * APP認証画面.
+     *
+     * @return array<string, mixed>|RedirectResponse
      */
     #[Route(path: '/mypage/two_factor_auth/app/challenge', name: 'plg_customer_2fa_app_challenge', methods: ['GET', 'POST'])]
     #[Template('@TwoFactorAuthCustomerApp44/default/tfa/app/challenge.twig')]
@@ -115,13 +115,15 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
             return $this->redirectToRoute($this->getCallbackRoute());
         }
 
-        $this->tfa = new TwoFactorAuth();
+        $tfa = new TwoFactorAuth();
 
         $error = null;
-        /** @var Customer $Customer */
         $Customer = $this->getUser();
+        if (!$Customer instanceof Customer) {
+            return $this->redirectToRoute('mypage');
+        }
 
-        if ($Customer->getTwoFactorAuthSecret() == null) {
+        if ($Customer->getTwoFactorAuthSecret() === null) {
             // APP認証設定まだ
             return $this->redirectToRoute('plg_customer_2fa_app_create');
         }
@@ -133,7 +135,9 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
         if ('POST' === $request->getMethod()) {
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
-                if ($this->verifyCode($Customer->getTwoFactorAuthSecret(), $form->get('one_time_token')->getData())) {
+                $secret = $Customer->getTwoFactorAuthSecret();
+                $token = $form->get('one_time_token')->getData();
+                if (is_string($secret) && is_string($token) && $this->verifyCode($tfa, $secret, $token)) {
                     $response = $this->redirectToRoute($this->getCallbackRoute());
                     $response->headers->setCookie(
                         $this->customerTwoFactorAuthService->createAuthedCookie(
@@ -143,9 +147,8 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
                     );
 
                     return $response;
-                } else {
-                    $error = trans('front.2fa.onetime.invalid_message__reinput');
                 }
+                $error = trans('front.2fa.onetime.invalid_message__reinput');
             } else {
                 $error = trans('front.2fa.onetime.invalid_message__reinput');
             }
@@ -160,18 +163,24 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
     /**
      * 秘密鍵生成.
      *
+     * @param TwoFactorAuth $tfa
+     *
      * @throws TwoFactorAuthException
      */
-    private function createSecret(): string
+    private function createSecret(TwoFactorAuth $tfa): string
     {
-        return $this->tfa->createSecret();
+        return $tfa->createSecret();
     }
 
     /**
      * 認証コードを検証.
+     *
+     * @param TwoFactorAuth $tfa
+     * @param string $authKey
+     * @param string $token
      */
-    private function verifyCode(string $authKey, string $token): bool
+    private function verifyCode(TwoFactorAuth $tfa, string $authKey, string $token): bool
     {
-        return $this->tfa->verifyCode($authKey, $token, 1);
+        return $tfa->verifyCode($authKey, $token, 1);
     }
 }

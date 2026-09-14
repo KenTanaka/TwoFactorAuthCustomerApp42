@@ -5,7 +5,7 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,8 +16,9 @@ namespace Plugin\TwoFactorAuthCustomerApp44\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Eccube\Attribute\EntityExtension;
+use Eccube\Entity\Customer;
 
-#[EntityExtension('Eccube\Entity\Customer')]
+#[EntityExtension(Customer::class)]
 trait CustomerTrait
 {
     #[ORM\Column(name: 'two_factor_auth_secret', type: Types::STRING, length: 255, nullable: true)]

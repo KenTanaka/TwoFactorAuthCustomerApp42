@@ -1,0 +1,25 @@
+parameters:
+    level: 6
+    paths:
+        - .
+    excludePaths:
+        - Resource/*
+        - Tests/bootstrap.php
+    doctrine:
+        objectManagerLoader: ../../../tests/object-manager.php
+        ormRepositoryClass: Eccube\Repository\AbstractRepository
+    # stubFiles は doctrine.objectManagerLoader が Customer/BaseInfo の
+    # リフレクションを上書きするため EntityExtension メソッドには効かない。
+    ignoreErrors:
+        -
+            message: '#Call to an undefined method Eccube\\Entity\\Customer::(get|set|is)(DeviceAuth|DeviceAuthed|TwoFactorAuth).*#'
+        -
+            message: '#Call to an undefined method Eccube\\Entity\\BaseInfo::(is|set)(TwoFactorAuthUse|OptionActivateDevice)\(\)#'
+        # EntityExtension の trait は実行時 proxy に載るため、解析上は未使用になる
+        -
+            identifier: trait.unused
+        # EC-CUBE 本体と同様。new Entity() 時に nullable が必要なプロパティと DB 非 null の差
+        -
+            message: "#^Property .+::\\$.+ type mapping mismatch: property can contain .+\\|null but database expects .+\\.$#"
+            identifier: doctrine.columnType
+    reportUnmatchedIgnoredErrors: false
