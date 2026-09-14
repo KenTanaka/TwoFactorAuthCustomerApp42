@@ -143,8 +143,10 @@ jobs:
         working-directory: 'ec-cube'
         run: |
           bin/console eccube:composer:require ec-cube/twofactorauthcustomer44
+          bin/console cache:clear --no-warmup
           bin/console eccube:plugin:enable --code=TwoFactorAuthCustomer44
           bin/console eccube:composer:require ec-cube/twofactorauthcustomerapp44
+          bin/console cache:clear --no-warmup
           bin/console eccube:plugin:enable --code=${PLUGIN_CODE}
           bin/console cache:clear --no-warmup
 
@@ -275,8 +277,10 @@ jobs:
         working-directory: 'ec-cube'
         run: |
           bin/console eccube:composer:require ec-cube/twofactorauthcustomer44
+          bin/console cache:clear --no-warmup
           bin/console eccube:plugin:enable --code=TwoFactorAuthCustomer44
           bin/console eccube:composer:require ec-cube/twofactorauthcustomerapp44
+          bin/console cache:clear --no-warmup
           bin/console eccube:plugin:enable --code=${PLUGIN_CODE}
           bin/console cache:clear --no-warmup
 
