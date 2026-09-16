@@ -76,8 +76,10 @@ jobs:
       - name: Checkout Base Plugin
         uses: actions/checkout@v4
         with:
-          repository: 'EC-CUBE/TwoFactorAuthCustomer42'
-          ref: '4.4'
+          # 親プラグイン PR が公式 4.4 にマージされるまで、パッケージ名 twofactorauthcustomer44 が入っている
+          # KenTanaka/TwoFactorAuthCustomer の feat-4.4 を参照する。マージ後は EC-CUBE/TwoFactorAuthCustomer42@4.4 に戻す。
+          repository: 'KenTanaka/TwoFactorAuthCustomer'
+          ref: 'feat-4.4'
           path: 'TwoFactorAuthCustomer44'
 
       - name: Archive Base Plugin
@@ -225,8 +227,10 @@ jobs:
       - name: Checkout Base Plugin
         uses: actions/checkout@v4
         with:
-          repository: 'EC-CUBE/TwoFactorAuthCustomer42'
-          ref: '4.4'
+          # 親プラグイン PR が公式 4.4 にマージされるまで、パッケージ名 twofactorauthcustomer44 が入っている
+          # KenTanaka/TwoFactorAuthCustomer の feat-4.4 を参照する。マージ後は EC-CUBE/TwoFactorAuthCustomer42@4.4 に戻す。
+          repository: 'KenTanaka/TwoFactorAuthCustomer'
+          ref: 'feat-4.4'
           path: 'TwoFactorAuthCustomer44'
 
       - name: Archive Base Plugin
