@@ -16,6 +16,7 @@ namespace Plugin\TwoFactorAuthCustomerApp44\Controller;
 use Eccube\Entity\Customer;
 use Plugin\TwoFactorAuthCustomer44\Controller\TwoFactorAuthCustomerController;
 use Plugin\TwoFactorAuthCustomerApp44\Form\Type\TwoFactorAuthAppTypeCustomer;
+use RobThree\Auth\Providers\Qr\QRServerProvider;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\TwoFactorAuthException;
 use Symfony\Bridge\Twig\Attribute\Template;
@@ -43,7 +44,7 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
             return $this->redirectToRoute($this->getCallbackRoute());
         }
 
-        $tfa = new TwoFactorAuth();
+        $tfa = new TwoFactorAuth(new QRServerProvider());
 
         $error = null;
         $Customer = $this->getUser();
@@ -115,7 +116,7 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
             return $this->redirectToRoute($this->getCallbackRoute());
         }
 
-        $tfa = new TwoFactorAuth();
+        $tfa = new TwoFactorAuth(new QRServerProvider());
 
         $error = null;
         $Customer = $this->getUser();
