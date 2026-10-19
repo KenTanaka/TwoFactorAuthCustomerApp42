@@ -37,7 +37,7 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
      * @return array<string, mixed>|RedirectResponse
      */
     #[Route(path: '/mypage/two_factor_auth/app/create', name: 'plg_customer_2fa_app_create', methods: ['GET', 'POST'])]
-    #[Template('@TwoFactorAuthCustomerApp44/default/tfa/app/register.twig')]
+    #[Template('TwoFactorAuthCustomerApp44/Resource/template/default/tfa/app/register.twig')]
     public function create(Request $request)
     {
         if ($this->isTwoFactorAuthed()) {
@@ -109,7 +109,7 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
      * @return array<string, mixed>|RedirectResponse
      */
     #[Route(path: '/mypage/two_factor_auth/app/challenge', name: 'plg_customer_2fa_app_challenge', methods: ['GET', 'POST'])]
-    #[Template('@TwoFactorAuthCustomerApp44/default/tfa/app/challenge.twig')]
+    #[Template('TwoFactorAuthCustomerApp44/Resource/template/default/tfa/app/challenge.twig')]
     public function challenge(Request $request)
     {
         if ($this->isTwoFactorAuthed()) {
