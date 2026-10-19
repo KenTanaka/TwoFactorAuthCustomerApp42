@@ -67,11 +67,20 @@ class TwoFactorAuthCustomerAppController extends TwoFactorAuthCustomerController
             $auth_key = $this->createSecret($tfa);
             $this->session->set(self::SESSION_APP_AUTH_KEY, $auth_key);
         } elseif ('POST' === $request->getMethod()) {
+            if ($Customer->getTwoFactorAuthSecret()) {
+                // 設定済みの会員には登録画面を出さないため、認証画面へ進ませる
+                return $this->redirectToRoute('plg_customer_2fa_app_challenge');
+            }
             $form->handleRequest($request);
             $auth_key = $this->session->get(self::SESSION_APP_AUTH_KEY);
-            if ($form->isSubmitted() && $form->isValid()) {
+            if (!is_string($auth_key)) {
+                // セッション切れ等で鍵が失われると送信されたコードを検証できないため、鍵を発行し直して読み込み直させる
+                $auth_key = $this->createSecret($tfa);
+                $this->session->set(self::SESSION_APP_AUTH_KEY, $auth_key);
+                $error = trans('front.2fa.app.secret_regenerated');
+            } elseif ($form->isSubmitted() && $form->isValid()) {
                 $token = $form->get('one_time_token')->getData();
-                if (is_string($auth_key) && is_string($token) && $this->verifyCode($tfa, $auth_key, $token)) {
+                if (is_string($token) && $this->verifyCode($tfa, $auth_key, $token)) {
                     // 秘密鍵更新
                     $Customer->setTwoFactorAuthSecret($auth_key);
                     $this->entityManager->persist($Customer);

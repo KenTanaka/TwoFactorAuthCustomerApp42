@@ -11,3 +11,6 @@ front.2fa.app.ready: |
 front.2fa.app.input: |
   二段階認証用スマートフォンアプリに表示されている
   6桁の数字をご入力ください。
+front.2fa.app.secret_regenerated: |
+  認証キーの有効期限が切れたため、新しいキーを発行しました。
+  QRコードを読み込み直し、表示された6桁の数字を入力してください。
